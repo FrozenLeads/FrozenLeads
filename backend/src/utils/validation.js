@@ -86,44 +86,26 @@ const ValidateEditProfileData = (req) => {
     return isEditAllowed
 }
 
-const ValidateLeadsData = (req)=>{
-    const { 
-        leadName,
-        LeadEmailId,
-        phone,
-        source,
-        status,
-        notes,
-        followUpDate            
-    } = req.body;
-
-    const validStatuses = [
-        'New',        // Newly added lead, hasn't been contacted yet
-        'Contacted',  // Lead has been contacted via email or phone
-        'Interested', // Lead has shown interest in the job opportunity
-        'Follow-up',  // Lead needs a follow-up (awaiting response)
-        'No Response', // Lead hasn't responded after initial contact
-        'Rejected',   // Lead has declined or is not interested
-        'Hired',      // Lead has been hired
-        'In Progress', // Lead is in an interview or recruitment stage
-        'Not Interested' // Lead explicitly stated no interest
-    ]
-
+const ValidateLeadsData = (req) => {
+    const { leadName, LeadEmailId, phone, source, notes } = req.body;
 
     if (!leadName || leadName.trim().length === 0) {
         throw new Error('Lead name cannot be empty');
     } else if (leadName.length < 4 || leadName.length > 50) {
-        throw new Error('First Name should be between 4-50 characters');
+        throw new Error('Lead name should be between 4–50 characters');
     } else if (containsLink(leadName)) {
         throw new Error('Lead name should not contain links');
     }
 
-    if (!LeadEmailId || !validator.isEmail(LeadEmailId)) {
-        throw new Error('Email is not valid');
+    if (!LeadEmailId && !phone) {
+        throw new Error('Either LeadEmailId or phone must be provided');
     }
 
-    if (!phone || !validator.isMobilePhone(phone, 'any')) {
-        throw new Error(`${phone} is not a valid mobile number`);
+
+    if (phone) {
+        if (!validator.isMobilePhone(phone, 'any')) {
+            throw new Error(`${phone} is not a valid mobile number`);
+        }
     }
 
     if (notes) {
@@ -135,23 +117,16 @@ const ValidateLeadsData = (req)=>{
     }
 
     if (source) {
+        if (source.length > 200) {
+            throw new Error('Source should be less than 200 characters');
+        }
         const isURL = validator.isURL(source);
         if (!isURL && source.length < 3) {
-            throw new Error('Source should be a valid URL or minimum 3 characters');
+            throw new Error('Source should be a valid URL or at least 3 characters');
         }
     }
-
-    if (!status || status.trim().length === 0) {
-        throw new Error('Status cannot be empty');
-    } else if (!validStatuses.includes(status)) {
-        throw new Error(`${status} is not a valid status`);
-    }
-
-    if (!followUpDate || !validator.isISO8601(followUpDate)) {
-        throw new Error('Follow-up date is not in valid ISO8601 format (YYYY-MM-DD)');
-    }
 };
-    
+
 
 
 

@@ -14,9 +14,7 @@ leadRouter.post('/lead/data',userAuth,leadLimiter , express.json({ limit: '2mb' 
             LeadEmailId,
             phone,
             source,
-            status,
             notes,
-            followUpDate            
         } = req.body
 
         ValidateLeadsData(req);
@@ -28,20 +26,14 @@ leadRouter.post('/lead/data',userAuth,leadLimiter , express.json({ limit: '2mb' 
                 message:'This is email is already present'
             })
         };
-        if (new Date(followUpDate) < new Date()) {
-            return res.status(400).json({
-                message: 'Follow-up date cannot be in the past'
-            });
-        }
+        
         const LeadData =  new Lead({
             leadName,
             LeadEmailId,
             phone,
             source,
-            status,
             notes,
             user:req.user._id,
-            followUpDate 
         })
         data = await LeadData.save();
         res.json({
