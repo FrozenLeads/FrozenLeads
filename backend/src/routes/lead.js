@@ -7,7 +7,7 @@ const {leadLimiter} =  require('../utils/rateLimit')
 
 
 
-leadRouter.post('/lead/data',userAuth,leadLimiter , express.json({ limit: '2mb' }),async (req,res)=>{
+leadRouter.post('/lead/data/',userAuth,leadLimiter , express.json({ limit: '2mb' }),async (req,res)=>{
     try {
         const { 
             leadName,

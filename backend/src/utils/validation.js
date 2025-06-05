@@ -55,9 +55,12 @@ const validateSignupData = (req)=>{
         throw new Error('Image url is too long and is potentially unsafe');
     }
   
-    else if (!['male', 'female', 'other'].includes(gender.toLowerCase().trim())) {
-        throw new Error('Gender must be male, female, or other');
-    }
+if (gender) {
+  if (!['male', 'female', 'other'].includes(gender.toLowerCase().trim())) {
+      throw new Error('Gender must be male, female, or other');
+  }
+}
+
     else if (typeof age !== 'number' || isNaN(age)) {
         throw new Error('Age must be a valid number');
     }
@@ -80,10 +83,10 @@ const ValidateEditProfileData = (req) => {
     ]
 
     const isEditAllowed = Object.keys(req.body).every((field) => {
-        AllowedFields.includes(field)
+        return AllowedFields.includes(field)
     });
 
-    return isEditAllowed
+    return isEditAllowed;
 }
 
 const ValidateLeadsData = (req) => {

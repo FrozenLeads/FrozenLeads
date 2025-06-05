@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(cookieParser());
 const cors = require('cors');
 app.use(cors({
-    origin: ' http://localhost:3000',
+    origin: 'http://localhost:3000',
     credentials: true, // Allow sending cookies with requests
 }));
 
@@ -19,11 +19,15 @@ app.use(cors({
 const authRouter = require('./routes/auth')
 const profileRouter = require('./routes/profile')
 const leadRouter = require('./routes/lead');
+const userLeadRouter = require('./routes/userLead');
+const collaborationRouter = require('./routes/collaboration');
 
 
 app.use('/',authRouter);
 app.use('/',profileRouter);
 app.use('/',leadRouter);
+app.use('/',userLeadRouter);
+app.use('/',collaborationRouter);
 
 
 
