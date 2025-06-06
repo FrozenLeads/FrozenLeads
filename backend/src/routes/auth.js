@@ -6,12 +6,12 @@ const User = require('../models/user');
 
 const { userAuth } = require('../middlewares/Auth');
 
-const {accountCreationLimiter } = require('../utils/rateLimit')
+const { accountCreationLimiter } = require('../utils/rateLimit')
 
 
 const authRouter = express.Router();
 
-authRouter.post('/signup',accountCreationLimiter , async (req,res)=>{
+authRouter.post('/signup', async (req, res) => {
     try {
 
         const {
@@ -22,33 +22,33 @@ authRouter.post('/signup',accountCreationLimiter , async (req,res)=>{
             password,
             gender,
             photoUrl
-          } = req.body;
+        } = req.body;
 
         // validation check 
         validateSignupData(req)
 
         //  checking if user already exist;
-        const existingUser =  await User.findOne({emailId});
-        if(existingUser){
-            return res.status(400).send('Signup failed : '+ emailId + ' is already registered')
+        const existingUser = await User.findOne({ emailId });
+        if (existingUser) {
+            return res.status(400).send('Signup failed : ' + emailId + ' is already registered')
         }
 
 
-       
+
         // creating new user
         const user = new User({
             firstName,
-            ...(lastName && {lastName}), 
-            age, 
-            emailId, 
+            ...(lastName && { lastName }),
+            age,
+            emailId,
             password,
-             ...(gender &&{gender}), 
-             ...(photoUrl && { photoUrl })
+            ...(gender && { gender }),
+            ...(photoUrl && { photoUrl })
         });
-        await  user.save()
-        res.status(201).send('data saved') 
+        await user.save()
+        res.status(201).send('data saved')
     } catch (err) {
-        res.status(400).send('Signup failed' + err.message)        
+        res.status(400).send('Signup failed' + err.message)
     }
 })
 
@@ -75,7 +75,12 @@ authRouter.post('/login', async (req, res) => {
 
         // If password is valid, generate JWT
         const token = await user.getJwt();
-        res.cookie('token', token);
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+        });
+
         res.status(201).send('Login successful');
     } catch (error) {
         res.status(500).send('Login Failed: ' + error.message);
@@ -83,32 +88,33 @@ authRouter.post('/login', async (req, res) => {
 });
 
 
-authRouter.post('/logout', async (req,res)=>{
-   await  res
-    .cookie('token',null,{
-        expires:new Date(Date.now())
-    })
-    .send('Logged out')
+authRouter.post('/logout', async (req, res) => {
+    await res.cookie('token', '', {
+        httpOnly: true,
+        expires: new Date(0),
+        sameSite: 'lax'
+    }).send('Logged out');
+
 })
 
-authRouter.patch('/profile/password',userAuth, async (req,res)=>{
-  try {
-    const LoggedInUser = req.user 
-    if(!req.body){
-        throw new Error('cannot update empty field')
+authRouter.patch('/profile/password', userAuth, async (req, res) => {
+    try {
+        const LoggedInUser = req.user
+        if (!req.body) {
+            throw new Error('cannot update empty field')
+        }
+        if (req.body.password) {
+            LoggedInUser.password = req.body.password
+            await LoggedInUser.save();
+        }
+        const { password, ...safeUser } = LoggedInUser.toObject();
+        res.json({
+            message: 'password updated successfully',
+            data: safeUser
+        })
+    } catch (err) {
+        res.status(400).send('Error ' + err.message)
     }
-    if(req.body.password){
-        LoggedInUser.password = req.body.password
-        await LoggedInUser.save();
-    }
-    const {password,...safeUser} = LoggedInUser.toObject();
-    res.json({
-        message:'password updated successfully',
-        data:safeUser
-    })
-  } catch (err) {
-    res.status(400).send('Error ' + err.message)
-  }
 })
 
 
